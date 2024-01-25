@@ -1,0 +1,6 @@
+USER_CREATE_CHAR_ERR = 'Недопустимый символ в имени пользователя'
+USER_CREATE_EXIST_EMAIL_ERR = 'Пользователь с таким email уже зарегистрирован'
+USER_CREATE_EXIST_NAME_ERR = 'Такое имя пользователя уже существует'
+USER_CREATE_ME_ERR = 'Запрещено использовать имя me'
+INVALID_TOKEN_ERR = 'Код подтверждения недействителен'
+REVIEW_CREATE_EXIST_ERR = 'Вы уже оставляли отзыв на это произведение'
