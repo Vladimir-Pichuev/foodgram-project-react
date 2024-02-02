@@ -22,10 +22,11 @@ from drf_spectacular.views import (
 from django.contrib import admin
 from django.urls import path, include
 
+local_api = 'api/'
 
 urlpatterns = [
-    path('', include('food.urls', namespace='food')),
-    path('', include('users.urls', namespace='users')),
+    path(local_api, include('food.urls', namespace='food')),
+    path(local_api, include('users.urls', namespace='users')),
     path('admin/', admin.site.urls),
 
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

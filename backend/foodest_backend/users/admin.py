@@ -4,9 +4,9 @@ from .models import MyUsers, Follow
 
 
 class MyUsersAdmin(admin.ModelAdmin):
-    list_display = ('id', 'USERNAME', 'first_name', 'last_name', 'email')
-    list_display_links = ('id', 'USERNAME')
-    search_fields = ('USERNAME',)
+    list_display = ('id', 'username', 'first_name', 'last_name', 'email')
+    list_display_links = ('id', 'username')
+    search_fields = ('username',)
 
 
 class FollowAdmin(admin.ModelAdmin):

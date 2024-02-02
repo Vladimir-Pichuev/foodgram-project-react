@@ -1,95 +1,56 @@
-from django.conf import settings
-from django.contrib.auth.models import User
-from drf_extra_fields.fields import Base64ImageField
-
-from djoser.serializers import UserCreateSerializer
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
-
-from .messages import (
-    REVIEW_CREATE_EXIST_ERR, USER_CREATE_EXIST_EMAIL_ERR,
-    USER_CREATE_EXIST_NAME_ERR, USER_CREATE_ME_ERR
-)
 from .models import Follow, MyUsers
 from food.models import Reciep
 
+from drf_extra_fields.fields import Base64ImageField
 
-class ProfileSerializer(serializers.ModelSerializer):
+FIELDS = (
+    'id',
+    'email',
+    'username',
+    'first_name',
+    'last_name',
+    'password',
+)
+
+
+class ProfileSerializer(UserSerializer):
     """Сериалайзер для модели User."""
-    is_subscribed = serializers.SerializerMethodField(read_only=True)
+    username = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = MyUsers
-        fields = '__all__'
+        fields = FIELDS
+
+    def get_username(self, obj):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return None
+        return user.username
 
     def get_is_subscribed(self, obj):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return Follow.objects.filter(user=user, author=obj).exists()
-
-    def validate(self, data):
-        if data.get('username') == settings.USER_INFO_URL_PATH:
-            raise serializers.ValidationError(USER_CREATE_ME_ERR)
-        return data
+        return Follow.objects.filter(user=user, following=obj).exists()
 
 
 class ProfileCreateSerializer(UserCreateSerializer):
-    """Сериалайзер для регистрации нового пользователя."""
     class Meta:
         model = MyUsers
-        fields = tuple(MyUsers.REQUIRED_FIELDS) + (
-            MyUsers.USERNAME,
-            'password',
-        )
-
-    def validate(self, data):
-        email_in_db = MyUsers.objects.filter(email=data.get('email'))
-        username_in_db = MyUsers.objects.filter(username=data.get('username'))
-
-        if data.get('username') == settings.USER_INFO_URL_PATH:
-            raise serializers.ValidationError(USER_CREATE_ME_ERR)
-        if email_in_db.exists():
-            if username_in_db.exists():
-                return data
-            raise serializers.ValidationError(USER_CREATE_EXIST_EMAIL_ERR)
-        else:
-            if username_in_db.exists():
-                raise serializers.ValidationError(USER_CREATE_EXIST_NAME_ERR)
-            return data
+        fields = FIELDS
 
 
-class ProfileUpdateSerializer(serializers.Serializer):
-    pass
+class RecipeSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+
+    class Meta:
+        model = Reciep
+        fields = ("id", "name", "image", "cooking_time")
 
 
-class ProfileDeleteSerializer(serializers.Serializer):
-    pass
-
-'''
-class UserSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer()
-
-    def create(self, validated_data):
-        profile_data = validated_data.pop('profile')
-        user = User.objects.create(**validated_data)
-        MyUsers.objects.create(user=user, **profile_data)
-        return user
-
-    def update(self, instance, validated_data):
-        profile = instance.profile
-        instance.username = validated_data.get('username', instance.username)
-        instance.email = validated_data.get('email', instance.email)
-        instance.save()
-        profile.save()
-        return instance
-'''
-
-
-class FollowSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(read_only=True, slug_field='username')
-    following = serializers.SlugRelatedField(
-        slug_field='username', queryset=MyUsers.objects.all()
-    )
+class FollowSerializer(ProfileSerializer):
     recipes_count = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
 
@@ -118,13 +79,15 @@ class FollowSerializer(serializers.ModelSerializer):
         recipes = obj.recipes.all()
         if limit:
             recipes = recipes[:int(limit)]
-        serializer = LimitReciepsSerializer(recipes, many=True, read_only=True)
+        serializer = RecipeSerializer(recipes, many=True, read_only=True)
         return serializer.data
 
 
+'''
 class LimitReciepsSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
 
     class Meta:
         model = Reciep
         fields = '__all__'
+'''

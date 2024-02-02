@@ -52,12 +52,12 @@ class Tags(models.Model):
     )
     slug = models.SlugField(max_length=10, unique=True, verbose_name='Слаг')
 
-    def __str__(self):
-        return self.title
-
     class Meta:
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
+
+    def __str__(self):
+        return self.title
 
 
 class Reciep(models.Model):
@@ -145,7 +145,6 @@ class Favourite(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='favorites',
         verbose_name='Пользователь',
     )
     recipe = models.ForeignKey(
@@ -188,5 +187,6 @@ class IngredientInRecipe(models.Model):
 
     def __str__(self):
         return (
-            f'{self.ingredient.name} ({self.ingredient.measurement_unit}) - {self.amount} '
+           f'{self.ingredient.name} ({self.ingredient.measurement_unit}) - '
+           f'{self.amount}'
         )
