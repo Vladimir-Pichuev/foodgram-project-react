@@ -2,21 +2,6 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-"""TAG_CHOICE = [
-    (1, 'Завтрак'),
-    (2, 'Обед'),
-    (3, 'Ужин'),
-]"""
-
-"""
-UNITS_CHOICE = [
-    ('Шт.', 'Штук'),
-    ('Гр.', 'Грамм'),
-    ('ст.ложку', 'ст.ложку'),
-    ('чайная ложка', 'чайная ложка'),
-]
-"""
-
 User = get_user_model()
 
 
@@ -50,7 +35,7 @@ class Tags(models.Model):
     color_code = models.CharField(
         max_length=7, unique=True, verbose_name='Цветовой НЕХ-код'
     )
-    slug = models.SlugField(max_length=10, unique=True, verbose_name='Слаг')
+    slug = models.SlugField(max_length=20, unique=True, verbose_name='Слаг')
 
     class Meta:
         verbose_name = 'Тег'
@@ -163,7 +148,7 @@ class Favourite(models.Model):
 
 
 class IngredientInRecipe(models.Model):
-    """ Модель для связи Ингридиента и Рецепта """
+    """ Модель для связи Ингридиента и Рецепта."""
 
     recipe = models.ForeignKey(
         Reciep,
@@ -190,3 +175,32 @@ class IngredientInRecipe(models.Model):
            f'{self.ingredient.name} ({self.ingredient.measurement_unit}) - '
            f'{self.amount}'
         )
+
+
+class ShoppingCart(models.Model):
+    """ Список покупок. """
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь',
+    )
+    recipe = models.ForeignKey(
+        Reciep,
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт',
+    )
+
+    class Meta:
+        verbose_name = 'Корзина'
+        verbose_name_plural = 'Корзина'
+        default_related_name = 'cart'
+        constraints = (
+            models.UniqueConstraint(
+                fields=('user', 'recipe',),
+                name='unique_shopping_cart'
+            ),
+        )
+
+    def __str__(self):
+        return f'{self.user} :: {self.recipe}'

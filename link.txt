@@ -1,0 +1,5 @@
+/c/Dev/food/foodgram-project-react/backend/foodest_backend/ (backend)
+
+superuser (admin/admin)
+
+#SECRET_KEY = 'django-insecure-y39yh9i2dml(0w=ztj)%z#+vl2dik2fbis_@=2bt6$zym&rblv'

@@ -7,7 +7,7 @@ class IsAuthorOrJustReading(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         is_authenticated = request.user and request.user.is_authenticated
         return (request.method in permissions.SAFE_METHODS
-                or obj.USERNAME == request.user
+                or obj.pk == request.user.pk
                 or (is_authenticated and request.user.is_staff)
                 )
 

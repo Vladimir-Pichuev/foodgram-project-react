@@ -42,14 +42,6 @@ class ProfileCreateSerializer(UserCreateSerializer):
         fields = FIELDS
 
 
-class RecipeSerializer(serializers.ModelSerializer):
-    image = Base64ImageField()
-
-    class Meta:
-        model = Reciep
-        fields = ("id", "name", "image", "cooking_time")
-
-
 class FollowSerializer(ProfileSerializer):
     recipes_count = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()

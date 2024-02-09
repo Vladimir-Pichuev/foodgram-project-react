@@ -41,5 +41,6 @@ sqlparse==0.4.2
 drf_spectacular
 uritemplate==4.1.1
 urllib3==1.26.11
+webcolors
 zipp==3.8.1
 gunicorn==20.1.0
