@@ -1,66 +1,68 @@
+from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from rest_framework import serializers
-from .models import Follow, MyUsers
-from food.models import Reciep
+from rest_framework import status
+from rest_framework.exceptions import ValidationError
+from rest_framework.fields import SerializerMethodField
+from users.models import Subscribe
+from food.serializers import RecipeShortSerializer
 
-from drf_extra_fields.fields import Base64ImageField
-
-FIELDS = (
-    'id',
-    'email',
-    'username',
-    'first_name',
-    'last_name',
-    'password',
-)
+User = get_user_model()
 
 
-class ProfileSerializer(UserSerializer):
-    """Сериалайзер для модели User."""
-    username = serializers.SerializerMethodField(read_only=True)
+class CustomUserCreateSerializer(UserCreateSerializer):
+    class Meta:
+        model = User
+        fields = tuple(User.REQUIRED_FIELDS) + (
+            User.USERNAME_FIELD,
+            'password',
+        )
+
+
+class CustomUserSerializer(UserSerializer):
+    is_subscribed = SerializerMethodField(read_only=True)
 
     class Meta:
-        model = MyUsers
-        fields = FIELDS
-
-    def get_username(self, obj):
-        user = self.context.get('request').user
-        if user.is_anonymous:
-            return None
-        return user.username
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+        )
 
     def get_is_subscribed(self, obj):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return Follow.objects.filter(user=user, following=obj).exists()
+        return Subscribe.objects.filter(user=user, author=obj).exists()
 
 
-class ProfileCreateSerializer(UserCreateSerializer):
-    class Meta:
-        model = MyUsers
-        fields = FIELDS
+class SubscribeSerializer(CustomUserSerializer):
+    recipes_count = SerializerMethodField()
+    recipes = SerializerMethodField()
 
+    class Meta(CustomUserSerializer.Meta):
+        fields = CustomUserSerializer.Meta.fields + (
+            'recipes_count', 'recipes'
+        )
+        read_only_fields = ('email', 'username')
 
-class FollowSerializer(ProfileSerializer):
-    recipes_count = serializers.SerializerMethodField()
-    recipes = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Follow
-        fields = '__all__'
-
-    def validate_following(self, following):
-        user = self.context['request'].user
-        if user == following:
-            raise serializers.ValidationError(
-                'Вы не можете подписаться сами на себя.'
+    def validate(self, data):
+        author = self.instance
+        user = self.context.get('request').user
+        if Subscribe.objects.filter(author=author, user=user).exists():
+            raise ValidationError(
+                detail='Вы уже подписаны на этого пользователя!',
+                code=status.HTTP_400_BAD_REQUEST
             )
-        if Follow.objects.filter(user=user, following=following).exists():
-            raise serializers.ValidationError(
-                'Вы уже подписаны на этого человека.'
+        if user == author:
+            raise ValidationError(
+                detail='Вы не можете подписаться на самого себя!',
+                code=status.HTTP_400_BAD_REQUEST
             )
-        return following
+        return data
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
@@ -71,15 +73,5 @@ class FollowSerializer(ProfileSerializer):
         recipes = obj.recipes.all()
         if limit:
             recipes = recipes[:int(limit)]
-        serializer = RecipeSerializer(recipes, many=True, read_only=True)
+        serializer = RecipeShortSerializer(recipes, many=True, read_only=True)
         return serializer.data
-
-
-'''
-class LimitReciepsSerializer(serializers.ModelSerializer):
-    image = Base64ImageField()
-
-    class Meta:
-        model = Reciep
-        fields = '__all__'
-'''

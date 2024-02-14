@@ -1,8 +1,6 @@
 from dotenv import load_dotenv
 import os
 from pathlib import Path
-from datetime import timedelta
-
 
 load_dotenv()
 
@@ -20,17 +18,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'rest_framework',
     'rest_framework.authtoken',
-    # 'rest_framework_simplejwt',
-    # 'rest_framework.authentication',
     'djoser',
     'django_filters',
     'drf_spectacular',
-    #'drf_spectacular_sidecar',
-    #'food.apps.FoodConfig',
-    #'users.apps.UsersConfig',
     'food',
     'users',
 ]
@@ -48,7 +40,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'foodest_backend.urls'
 
-AUTH_USER_MODEL = 'users.MyUsers'
+AUTH_USER_MODEL = 'users.User'
 
 TEMPLATES = [
     {
@@ -139,7 +131,7 @@ USERNAME_REGEX = r'^[\w.@+-]+\Z'
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'collected_static'
+STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -161,12 +153,10 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
-        # 'rest_framework.renderers.TemplateHTMLRenderer',
     ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
@@ -176,10 +166,10 @@ DJOSER = {
     "HIDE_USERS": False,
     "PERMISSIONS": {},
     "SERIALIZERS": {
-        "user": "users.serializers.ProfileSerializer",
-        "user_list": "users.serializers.ProfileSerializer",
-        "current_user": "users.serializers.ProfileSerializer",
-        "user_create": "users.serializers.ProfileCreateSerializer",
+        "user": "users.serializers.CustomUserSerializer",
+        "user_list": "users.serializers.CustomUserSerializer",
+        "current_user": "users.serializers.CustomUserSerializer",
+        "user_create": "users.serializers.CustomUserCreateSerializer",
     },
 }
 
